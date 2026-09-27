@@ -16,49 +16,29 @@ fi
 echo -e "${CYAN}[*] Installing missing Intel sound firmware packages...${NC}"
 apt install -y firmware-intel-sound firmware-misc-nonfree
 
-echo -e "${CYAN}[*] Configuring pre-login systemd boot mute service...${NC}"
+echo -e "${CYAN}[*] Configuring CPU C-state limits to prevent audio register corruption...${NC}"
+if ! grep -q "intel_idle.max_cstate=1" /etc/default/grub; then
+    sed -i 's/\(GRUB_CMDLINE_LINUX_DEFAULT="[^"]*\)"/\1 intel_idle.max_cstate=1"/' /etc/default/grub
+    echo -e "${GREEN}[+] intel_idle.max_cstate=1 parameter added to GRUB successfully!${NC}"
+    update-grub
+else
+    echo -e "${YELLOW}[!] intel_idle.max_cstate=1 is already present in GRUB configuration.${NC}"
+fi
 
 # Get the directory where patch-audio.sh is located
 SCRIPT_DIR="$(dirname "$(realpath "$0")")"
-SRC_MUTING_SCRIPT="$SCRIPT_DIR/miix-boot-mute.sh"
-DEST_MUTING_SCRIPT="/usr/local/bin/miix-boot-mute.sh"
+MUTING_SCRIPT="$SCRIPT_DIR/miix-mute-all"
 
-SRC_SERVICE_FILE="$SCRIPT_DIR/miix-boot-mute.service"
-DEST_SERVICE_FILE="/etc/systemd/system/miix-boot-mute.service"
-
-# 1. Check if miix-boot-mute.sh is alongside this script, copy it, and make it executable
-if [ -f "$SRC_MUTING_SCRIPT" ]; then
-  cp "$SRC_MUTING_SCRIPT" "$DEST_MUTING_SCRIPT"
-  chmod +x "$DEST_MUTING_SCRIPT"
-  echo -e "${GREEN}[+] Successfully installed boot mute script to $DEST_MUTING_SCRIPT${NC}"
+# Chmod and run miix-mute-all, then store the ALSA state
+if [ -f "$MUTING_SCRIPT" ]; then
+  chmod +x "$MUTING_SCRIPT"
+  echo -e "${CYAN}[*] Executing miix-mute-all and storing default ALSA state...${NC}"
+  "$MUTING_SCRIPT"
+  alsactl store 2>/dev/null || true
+  echo -e "${GREEN}[+] ALSA state stored successfully.${NC}"
 else
-  echo -e "${RED}[-] miix-boot-mute.sh not found alongside patch-audio.sh!${NC}"
+  echo -e "${RED}[-] miix-mute-all not found alongside patch-audio.sh!${NC}"
   exit 1
 fi
-
-# 2. Check if miix-boot-mute.service is alongside this script and copy it
-if [ -f "$SRC_SERVICE_FILE" ]; then
-  cp "$SRC_SERVICE_FILE" "$DEST_SERVICE_FILE"
-  echo -e "${GREEN}[+] Successfully installed systemd service file to $DEST_SERVICE_FILE${NC}"
-else
-  echo -e "${RED}[-] miix-boot-mute.service not found alongside patch-audio.sh!${NC}"
-  exit 1
-fi
-
-# 3. Reload daemon and enable the service
-systemctl daemon-reload
-systemctl enable miix-boot-mute.service
-
-if [ $? -eq 0 ]; then
-  echo -e "${GREEN}[+] Successfully enabled pre-login boot-mute service.${NC}"
-else
-  echo -e "${RED}[-] Failed to enable systemd service.${NC}"
-fi
-
-# 4. Apply mutes right now and save them into ALSA's default state
-echo -e "${CYAN}[*] Applying initial mutes and storing default ALSA state...${NC}"
-"$DEST_MUTING_SCRIPT"
-alsactl store 2>/dev/null || true
-echo -e "${GREEN}[+] ALSA state stored successfully.${NC}"
 
 echo -e "${CYAN}[*] Done!${NC}"
