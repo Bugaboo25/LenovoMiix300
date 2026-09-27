@@ -1,6 +1,6 @@
 [Unit]
 Description=Mute Lenovo Miix 300 Audio at Boot
-After=sound.target
+After=sound.target alsa-restore.service
 Before=lightdm.service
 
 [Service]

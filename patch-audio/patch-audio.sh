@@ -55,4 +55,10 @@ else
   echo -e "${RED}[-] Failed to enable systemd service.${NC}"
 fi
 
+# 4. Apply mutes right now and save them into ALSA's default state
+echo -e "${CYAN}[*] Applying initial mutes and storing default ALSA state...${NC}"
+"$DEST_MUTING_SCRIPT"
+alsactl store 2>/dev/null || true
+echo -e "${GREEN}[+] ALSA state stored successfully.${NC}"
+
 echo -e "${CYAN}[*] Done!${NC}"
