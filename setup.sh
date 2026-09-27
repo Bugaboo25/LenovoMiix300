@@ -4,7 +4,7 @@
 GREEN='\033[0;32m'
 RED='\033[0;31m'
 YELLOW='\033[1;33m'
-CYAN='\033[0;36m'
+CYAN='\033[1;36m'
 NC='\033[0m' # No Color
 
 # Check if the script is run with root / sudo privileges
@@ -54,4 +54,4 @@ echo "================================================================="
 echo "       LENOVO MIIX 300 SETUP & CONFIGURATION COMPLETE!           "
 echo "================================================================="
 echo -e "${NC}"
-echo -e "${YELLOW}[!] Please reboot your system now to apply all changes.${NC}"
+echo -e "${YELLOW}Please reboot your system now to apply all changes.${NC}"
