@@ -92,4 +92,4 @@ else
     fi
 fi
 
-echo -e "Done!"
+echo -e "${CYAN}[*] Done!${NC}"
