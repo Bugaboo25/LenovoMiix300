@@ -16,42 +16,43 @@ fi
 echo -e "${CYAN}[*] Installing missing Intel sound firmware packages...${NC}"
 apt install -y firmware-intel-sound firmware-misc-nonfree
 
-echo -e "${CYAN}[*] Configuring UCM2 audio profile defaults (disabling startup noise & setting 25% volume)...${NC}"
+echo -e "${CYAN}[*] Configuring pre-login systemd boot mute service...${NC}"
 
-# Locate the UCM2 HiFi.conf file for bytcr-rt5640
-UCM_FILE="/usr/share/alsa/ucm2/Intel/bytcr-rt5640/HiFi.conf"
-if [ ! -f "$UCM_FILE" ]; then
-  UCM_FILE=$(find /usr/share/alsa/ucm2 -path "*bytcr-rt5640*"/HiFi.conf 2>/dev/null | head -n 1)
+# Get the directory where patch-audio.sh is located
+SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+SRC_MUTING_SCRIPT="$SCRIPT_DIR/miix-boot-mute.sh"
+DEST_MUTING_SCRIPT="/usr/local/bin/miix-boot-mute.sh"
+
+SRC_SERVICE_FILE="$SCRIPT_DIR/miix-boot-mute.service"
+DEST_SERVICE_FILE="/etc/systemd/system/miix-boot-mute.service"
+
+# 1. Check if miix-boot-mute.sh is alongside this script, copy it, and make it executable
+if [ -f "$SRC_MUTING_SCRIPT" ]; then
+  cp "$SRC_MUTING_SCRIPT" "$DEST_MUTING_SCRIPT"
+  chmod +x "$DEST_MUTING_SCRIPT"
+  echo -e "${GREEN}[+] Successfully installed boot mute script to $DEST_MUTING_SCRIPT${NC}"
+else
+  echo -e "${RED}[-] miix-boot-mute.sh not found alongside patch-audio.sh!${NC}"
+  exit 1
 fi
 
-if [ -z "$UCM_FILE" ] || [ ! -f "$UCM_FILE" ]; then
-  echo -e "${RED}[-] Could not find bytcr-rt5640 HiFi.conf under /usr/share/alsa/ucm2/. Skipping UCM patch.${NC}"
+# 2. Check if miix-boot-mute.service is alongside this script and copy it
+if [ -f "$SRC_SERVICE_FILE" ]; then
+  cp "$SRC_SERVICE_FILE" "$DEST_SERVICE_FILE"
+  echo -e "${GREEN}[+] Successfully installed systemd service file to $DEST_SERVICE_FILE${NC}"
 else
-  echo -e "${GREEN}[+] Found UCM2 file at: $UCM_FILE${NC}"
-  
-  # Check if already fully configured
-  if grep -q "Speaker Playback Volume" "$UCM_FILE" && grep -q 'cset "name='\''Speaker Switch'\'' off"' "$UCM_FILE"; then
-    echo -e "${YELLOW}[!] The UCM2 file is already configured with disabled defaults and 25% volume!${NC}"
-  else
-    echo -e "${CYAN}[*] Creating backup as HiFi.conf.bak...${NC}"
-    cp "$UCM_FILE" "${UCM_FILE}.bak"
+  echo -e "${RED}[-] miix-boot-mute.service not found alongside patch-audio.sh!${NC}"
+  exit 1
+fi
 
-    # Locate patch_ucm.py in the same directory as this script
-    PYTHON_SCRIPT="$(dirname "$0")/patch-ucm2.py"
-    if [ ! -f "$PYTHON_SCRIPT" ]; then
-      echo -e "${RED}[-] Error: patch-ucm2.py could not be found in the same directory!${NC}"
-      exit 1
-    fi
+# 3. Reload daemon and enable the service
+systemctl daemon-reload
+systemctl enable miix-boot-mute.service
 
-    # Run the separate Python script with sudo privileges
-    python3 "$PYTHON_SCRIPT" "$UCM_FILE"
-
-    if [ $? -eq 0 ]; then
-      echo -e "${GREEN}[+] UCM2 configuration successfully applied!${NC}"
-    else
-      echo -e "${RED}[-] UCM2 modification failed. Original file remains safe (backup at HiFi.conf.bak).${NC}"
-    fi
-  fi
+if [ $? -eq 0 ]; then
+  echo -e "${GREEN}[+] Successfully enabled pre-login boot-mute service.${NC}"
+else
+  echo -e "${RED}[-] Failed to enable systemd service.${NC}"
 fi
 
 echo -e "${CYAN}[*] Done!${NC}"

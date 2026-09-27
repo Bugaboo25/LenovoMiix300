@@ -22,7 +22,10 @@ echo -e "${CYAN}[*] Starting system patching sequence...${NC}"
 AUDIO_SCRIPT="patch-audio/patch-audio.sh"
 if [ -f "$AUDIO_SCRIPT" ]; then
   echo -e "${CYAN}[*] Executing audio patch script...${NC}"
+  # Make main script and any companion .sh scripts in the folder executable
   chmod +x "$AUDIO_SCRIPT"
+  [ -f "patch-audio/miix-boot-mute.sh" ] && chmod +x "patch-audio/miix-boot-mute.sh"
+  
   bash "$AUDIO_SCRIPT"
   if [ $? -eq 0 ]; then
     echo -e "${GREEN}[+] Audio patch completed successfully.${NC}"
@@ -30,14 +33,17 @@ if [ -f "$AUDIO_SCRIPT" ]; then
     echo -e "${RED}[-] Audio patch script encountered an error.${NC}"
   fi
 else
-  echo -e "${YELLOW}[!] Warning: Audio patch script not found at '$AUDIO_SCRIPT'. Skipping audio setup.${NC}"
+  echo -e "${YELLOW}[!] Audio patch script not found at '$AUDIO_SCRIPT'. Skipping audio setup.${NC}"
 fi
 
 # 2. Run Display Patch Script
 DISPLAY_SCRIPT="patch-display/patch-display.sh"
 if [ -f "$DISPLAY_SCRIPT" ]; then
   echo -e "${CYAN}[*] Executing display patch script...${NC}"
+  # Make main display script and any companion .sh scripts in the folder executable
   chmod +x "$DISPLAY_SCRIPT"
+  find patch-display/ -name "*.sh" -exec chmod +x {} +
+  
   bash "$DISPLAY_SCRIPT"
   if [ $? -eq 0 ]; then
     echo -e "${GREEN}[+] Display patch completed successfully.${NC}"

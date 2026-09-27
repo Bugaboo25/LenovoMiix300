@@ -1,0 +1,12 @@
+[Unit]
+Description=Mute Lenovo Miix 300 Audio at Boot
+After=sound.target
+Before=lightdm.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/miix-boot-mute.sh
+RemainAfterExit=true
+
+[Install]
+WantedBy=multi-user.target
