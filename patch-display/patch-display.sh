@@ -14,7 +14,7 @@ fi
 
 echo -e "[*] Installing required packages..."
 echo -e "${GREEN}[+] Installing iio-sensor-proxy...${NC}"
-apt-get update && apt-get install -y iio-sensor-proxy
+apt-get install -y iio-sensor-proxy
 
 echo -e "[*] Configuring Display Orientation (Landscape)"
 echo -e "${GREEN}[+] Updating GRUB configuration...${NC}"
