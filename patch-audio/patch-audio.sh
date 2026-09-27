@@ -27,7 +27,7 @@ fi
 
 # Get the directory where patch-audio.sh is located
 SCRIPT_DIR="$(dirname "$(realpath "$0")")"
-MUTING_SCRIPT="$SCRIPT_DIR/miix-mute-all"
+MUTING_SCRIPT="$SCRIPT_DIR/miix-mute-all.sh"
 
 # Chmod and run miix-mute-all, then store the ALSA state
 if [ -f "$MUTING_SCRIPT" ]; then
