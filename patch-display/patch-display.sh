@@ -78,8 +78,9 @@ if [ ! -f "$LIGHTDM_CONF" ]; then
     echo -e "[Seat:*]\ndisplay-setup-script=$DEST_FIX" > "$LIGHTDM_CONF"
     echo -e "${GREEN}[+] Created lightdm.conf and added display-setup-script.${NC}"
 else
-    if grep -q "display-setup-script" "$LIGHTDM_CONF"; then
-        echo -e "${YELLOW}[!] display-setup-script is already configured in lightdm.conf.${NC}"
+    # Check specifically for an ACTIVE (uncommented) line starting with display-setup-script
+    if grep -qE '^[[:space:]]*display-setup-script' "$LIGHTDM_CONF"; then
+        echo -e "${YELLOW}[!] display-setup-script is already actively configured in lightdm.conf.${NC}"
     else
         if grep -q "\[Seat:\*\]" "$LIGHTDM_CONF"; then
             sed -i "/\[Seat:\*\]/a display-setup-script=$DEST_FIX" "$LIGHTDM_CONF"
