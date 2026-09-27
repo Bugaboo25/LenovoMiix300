@@ -8,6 +8,7 @@ os.environ['DISPLAY'] = ':0'
 
 IIO_PATH = "/sys/bus/iio/devices/iio:device0"
 TOUCHSCREEN_NAME = "FTSC1000:00 2808:1015"
+TILT_THRESHOLD = 150  # Acceleration threshold for triggering rotation
 
 # Offset rotation mapping: shifts everything 90 degrees right to match panel mounting
 ROTATION_MAP = {
@@ -45,16 +46,16 @@ def main():
 
         # Determine base orientation from accelerometer
         if abs(y) >= abs(x):
-            if y > 150:
+            if y > TILT_THRESHOLD:
                 base_rotation = "normal"
-            elif y < -150:
+            elif y < -TILT_THRESHOLD:
                 base_rotation = "inverted"
             else:
                 base_rotation = current_rotation
         else:
-            if x > 150:
+            if x > TILT_THRESHOLD:
                 base_rotation = "right"
-            elif x < -150:
+            elif x < -TILT_THRESHOLD:
                 base_rotation = "left"
             else:
                 base_rotation = current_rotation

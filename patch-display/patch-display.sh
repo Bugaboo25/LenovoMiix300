@@ -4,6 +4,7 @@
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
+CYAN='\033[1;36m'
 NC='\033[0m' # No Color
 
 # Ensure the script is run with root/sudo privileges
@@ -12,11 +13,11 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-echo -e "[*] Installing required packages..."
+echo -e "${CYAN}[*] Installing required packages...${NC}"
 echo -e "${GREEN}[+] Installing iio-sensor-proxy...${NC}"
 apt-get install -y iio-sensor-proxy
 
-echo -e "[*] Configuring Display Orientation (Landscape)"
+echo -e "${CYAN}[*] Configuring Display Orientation (Landscape)${NC}"
 echo -e "${GREEN}[+] Updating GRUB configuration...${NC}"
 if ! grep -q "fbcon=rotate:1" /etc/default/grub; then
     sed -i 's/\(GRUB_CMDLINE_LINUX_DEFAULT="[^"]*\)"/\1 fbcon=rotate:1"/' /etc/default/grub
@@ -26,7 +27,7 @@ else
     echo -e "${YELLOW}[!] fbcon=rotate:1 is already present in GRUB configuration.${NC}"
 fi
 
-echo -e "[*] Fixing SoC PWM Chip & Backlight Control"
+echo -e "${CYAN}[*] Fixing SoC PWM Chip & Backlight Control${NC}"
 echo -e "${GREEN}[+] Configuring initramfs for PWM modules...${NC}"
 INITRAMFS_MODULES="/etc/initramfs-tools/modules"
 PWM_MODS=("pwm_lpss" "pwm_lpss_platform")
@@ -50,7 +51,7 @@ else
     echo -e "${YELLOW}[!] PWM modules already configured in initramfs; skipping update.${NC}"
 fi
 
-echo -e "[*] Setting up rotation daemon and touchscreen launcher..."
+echo -e "${CYAN}[*] Setting up rotation daemon and touchscreen launcher...${NC}"
 # Get the directory where this patch script is located
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
