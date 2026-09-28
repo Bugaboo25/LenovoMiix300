@@ -16,10 +16,10 @@ Because the Lenovo Miix 300 is a 32-bit UEFI device running on a 64-bit processo
 
 ## Installation on Lenovo Miix 300
 
-1. Turn on the tablet and press **F12** repeatedly to enter the BIOS settings.
+1. Turn on the tablet and press **F2** repeatedly to enter the BIOS settings.
 2. Make sure that **Secure Boot** is **disabled**.
 3. Insert your prepared USB boot key.
-4. If the bootloader does not automatically appear, restart and press **F2** repeatedly to select the boot device.
+4. If the bootloader does not automatically appear, restart and press **F12** repeatedly to select the boot device.
 5. Proceed with the Debian installation and choose **Xfce** as your window manager for optimal performance on this low-resource hardware.
 
 ## Post-Install Patching
