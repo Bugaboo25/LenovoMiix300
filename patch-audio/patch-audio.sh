@@ -25,20 +25,27 @@ else
     echo -e "${YELLOW}[!] intel_idle.max_cstate=1 is already present in GRUB configuration.${NC}"
 fi
 
-# Get the directory where patch-audio.sh is located
-SCRIPT_DIR="$(dirname "$(realpath "$0")")"
-MUTING_SCRIPT="$SCRIPT_DIR/miix-mute-all.sh"
+echo -e "${CYAN}[*] Muting the bytcr-rt5640 sound card...${NC}"
 
-# Chmod and run miix-mute-all, then store the ALSA state
-if [ -f "$MUTING_SCRIPT" ]; then
-  chmod +x "$MUTING_SCRIPT"
-  echo -e "${CYAN}[*] Executing miix-mute-all and storing default ALSA state...${NC}"
-  "$MUTING_SCRIPT"
-  alsactl store 2>/dev/null || true
-  echo -e "${GREEN}[+] ALSA state stored successfully.${NC}"
-else
-  echo -e "${RED}[-] miix-mute-all not found alongside patch-audio.sh!${NC}"
-  exit 1
-fi
+CARD_NUM=1
+
+# 1. Mute all outputs completely
+amixer -c "$CARD_NUM" -q cset iface=MIXER,name='Speaker Playback Switch' off || true
+amixer -c "$CARD_NUM" -q cset iface=MIXER,name='Speaker Output Switch' off || true
+amixer -c "$CARD_NUM" -q cset iface=MIXER,name='Headphone Playback Switch' off || true
+amixer -c "$CARD_NUM" -q cset iface=MIXER,name='Headphone Output Switch' off || true
+
+# 2. Mute all inputs and ADCs to prevent feedback loops
+amixer -c "$CARD_NUM" -q cset iface=MIXER,name='Internal Mic Switch' off || true
+amixer -c "$CARD_NUM" -q cset iface=MIXER,name='Headset Mic Switch' off || true
+amixer -c "$CARD_NUM" -q cset iface=MIXER,name='Mono ADC Capture Switch' off || true
+amixer -c "$CARD_NUM" -q cset iface=MIXER,name='ADC Capture Switch' off || true
+
+# 3. Set a safe default speaker volume (25%)
+amixer -c "$CARD_NUM" -q cset iface=MIXER,name='Speaker Playback Volume' 25% || true
+
+# Store default ALSA state
+alsactl store || true
+echo -e "${GREEN}[+] ALSA state stored successfully.${NC}"
 
 echo -e "${CYAN}[*] Done!${NC}"
